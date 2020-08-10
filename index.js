@@ -50,16 +50,29 @@ app.post('/login', (req, res) => {
             return res.status(404).json({ username: 'User not found' });
         }
 
-        bcrypt.compare(password, user.password).then(( isMatch) => {
+        bcrypt.compare(password, user.password).then((isMatch) => {
             if (isMatch) {
                 console.log("Authentication succeeded");
                 res.status(200).send();
             } else {
-                console.log("Passwords do not match, match result = ",isMatch)
+                console.log("Passwords do not match, match result = ", isMatch)
                 console.log(password, user.password)
                 res.status(400).send();
             }
         })
+    })
+})
+
+app.get('/my-credentials', (req, res) => {
+    const username = req.body.username;
+
+    User.findOne({ username }).then(user => {
+        if (!user) {
+            console.log(`User: ${username} not found`);
+            return res.status(404).json({ username: 'User not found' });
+        }
+
+        res.status(200).json({ username: user.username, password: user.password })
     })
 })
 
