@@ -81,11 +81,6 @@ app.get('/my-credentials', (req, res) => {
     })
 })
 
-app.get('/.well-known/pki-validation', function(req, res){
-    const file = `${__dirname}/cert/BC9C3D7BB5E05BB6147EC40BC7CA17E0.txt`;
-    res.download(file); // Set disposition and send it.
-  });
-
 app.listen(port, () => {
     console.log(`Example app listening at http://localhost:${port}`)
 })
