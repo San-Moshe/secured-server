@@ -5,6 +5,8 @@ var bodyParser = require('body-parser')
 const User = require("./Models/user");
 const port = 3000;
 const bcrypt = require('bcryptjs');
+const tokenMiddleware = require("./Middlewares/token.middleware")
+const tokenUtils = require("./Utils/token.utils")
 var jsonParser = bodyParser.json()
 
 const uri = "mongodb+srv://faxesan:123123123@cluster0.joxic.mongodb.net/openu-db?retryWrites=true&w=majority";
@@ -14,10 +16,7 @@ mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true }).then(
 })
 
 app.use(jsonParser);
-
-app.get('/', (req, res) => {
-    res.send('Hello World!')
-})
+app.use('/', tokenMiddleware.checkToken);
 
 app.post('/register', (req, res) => {
     console.log(req.body)
@@ -27,14 +26,14 @@ app.post('/register', (req, res) => {
 
     bcrypt.genSalt(10, function (err, salt) {
         bcrypt.hash(password, salt, function (err, hash) {
-            new User({ username: username, password: hash }).save().then((resp) => {
-                res.status(200).send(resp);
+            new User({ username: username, password: hash }).save().then((user) => {
+                res.status(200).json(tokenUtils.createToken(username));
             }).catch((err) => {
                 console.log(err);
                 if (err.code === 11000) {
-                    res.status(409).send(err);
+                    res.status(409).send();
                 } else {
-                    res.status(500).send(err);
+                    res.status(500).send();
                 }
             });
         });
@@ -44,6 +43,7 @@ app.post('/register', (req, res) => {
 app.post('/login', (req, res) => {
     const username = req.body.username;
     const password = req.body.password;
+
     User.findOne({ username }).then(user => {
         if (!user) {
             console.log(`User: ${username} not found`);
@@ -52,27 +52,30 @@ app.post('/login', (req, res) => {
 
         bcrypt.compare(password, user.password).then((isMatch) => {
             if (isMatch) {
-                console.log("Authentication succeeded");
-                res.status(200).send();
+                res.json(tokenUtils.createToken(username))
             } else {
-                console.log("Passwords do not match, match result = ", isMatch)
-                console.log(password, user.password)
-                res.status(400).send();
+                res.send(401).json({
+                    success: false,
+                    message: 'Incorrect username or password'
+                });
             }
         })
     })
 })
 
+
 app.get('/my-credentials', (req, res) => {
-    const username = req.body.username;
+    const username = req.decoded.username;
 
     User.findOne({ username }).then(user => {
         if (!user) {
-            console.log(`User: ${username} not found`);
             return res.status(404).json({ username: 'User not found' });
         }
 
         res.status(200).json({ username: user.username, password: user.password })
+    }).catch(err => {
+        console.log(err);
+        res.status(500).send();
     })
 })
 
