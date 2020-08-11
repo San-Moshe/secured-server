@@ -9,6 +9,8 @@ const tokenMiddleware = require("./Middlewares/token.middleware")
 const tokenUtils = require("./Utils/token.utils")
 var jsonParser = bodyParser.json()
 
+//TODO use .env for port and connection string
+
 const uri = "mongodb+srv://faxesan:123123123@cluster0.joxic.mongodb.net/openu-db?retryWrites=true&w=majority";
 mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true }).then(res => {
 }).catch(err => {
