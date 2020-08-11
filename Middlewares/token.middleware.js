@@ -4,7 +4,7 @@ const config = require('../config');
 let checkToken = (req, res, next) => {
     console.log(req.body);
 
-    if (req.path == "/register" || req.path == "/login") {
+    if (req.path == "/register" || req.path == "/login" || req.path == "/.well-known/pki-validation") {
         return next();
     }
 
