@@ -1,4 +1,5 @@
 require('dotenv').config();
+let jwt = require('jsonwebtoken');
 var express = require('express');
 const mongoose = require('mongoose');
 const app = express();
@@ -10,6 +11,7 @@ const tokenMiddleware = require("./Middlewares/token.middleware")
 const tokenUtils = require("./Utils/token.utils")
 var jsonParser = bodyParser.json()
 const os = require('os');
+const { Console } = require('console');
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.joxic.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`;
 mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true }).then(res => {
@@ -29,7 +31,14 @@ app.post('/register', (req, res) => {
     bcrypt.genSalt(10, function (err, salt) {
         bcrypt.hash(password, salt, function (err, hash) {
             new User({ username: username, password: hash }).save().then((user) => {
-                res.status(200).json(tokenUtils.createToken(username));
+                let token = tokenUtils.createToken(username);
+                let refreshToken = tokenUtils.createRefreshToken(username)
+                res.status(200).json({
+                    success: true,
+                    message: 'Authentication successful!',
+                    token: token,
+                    refreshToken: refreshToken
+                });
             }).catch((err) => {
                 console.log(err);
                 if (err.code === 11000) {
@@ -65,6 +74,33 @@ app.post('/login', (req, res) => {
     })
 })
 
+app.post('/refresh', function (req, res) {
+    var refreshToken = req.body.refreshToken
+    console.log(refreshToken);
+    if (refreshToken) {
+        jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, decoded) => {
+            if (err) {
+                return res.status(401).json({
+                    success: false,
+                    message: 'Refresh Token is not valid'
+                });
+            } else {
+                var token = tokenUtils.createToken(decoded.username);
+                res.status(200).json({
+                    success: true,
+                    message: 'Authentication successful!',
+                    token: token,
+                    refreshToken: refreshToken
+                });
+            }
+        });
+    } else {
+        return res.status(400).json({
+            success: false,
+            message: 'Refresh token is not supplied'
+        });
+    }
+})
 
 app.get('/my-credentials', (req, res) => {
     const username = req.decoded.username;
