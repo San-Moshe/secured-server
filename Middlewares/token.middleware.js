@@ -1,10 +1,11 @@
+require('dotenv').config();
 let jwt = require('jsonwebtoken');
-const config = require('../config');
+
 
 let checkToken = (req, res, next) => {
     console.log(req.body);
 
-    if (req.path == "/register" || req.path == "/login" || req.path == "/.well-known/pki-validation") {
+    if (req.path == "/register" || req.path == "/login" || req.path == "/.well-known/pki-validation" || req.path == "/refresh") {
         return next();
     }
 
@@ -15,7 +16,7 @@ let checkToken = (req, res, next) => {
     }
 
     if (token) {
-        jwt.verify(token, config.secret, (err, decoded) => {
+        jwt.verify(token, process.env.TOKEN_SECRET, (err, decoded) => {
             if (err) {
                 return res.status(401).json({
                     success: false,
