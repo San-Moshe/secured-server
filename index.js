@@ -56,7 +56,7 @@ app.post('/login', (req, res) => {
             if (isMatch) {
                 res.json(tokenUtils.createToken(username))
             } else {
-                res.send(401).json({
+                res.status(401).json({
                     success: false,
                     message: 'Incorrect username or password'
                 });
