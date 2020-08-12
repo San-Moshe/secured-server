@@ -1,17 +1,17 @@
+require('dotenv').config();
 var express = require('express');
 const mongoose = require('mongoose');
 const app = express();
 var bodyParser = require('body-parser')
 const User = require("./Models/user");
-const port = process.env.PORT || 3000;
+const port = process.env.PORT;
 const bcrypt = require('bcryptjs');
 const tokenMiddleware = require("./Middlewares/token.middleware")
 const tokenUtils = require("./Utils/token.utils")
 var jsonParser = bodyParser.json()
+const os = require('os');
 
-//TODO use .env for port and connection string
-
-const uri = "mongodb+srv://faxesan:123123123@cluster0.joxic.mongodb.net/openu-db?retryWrites=true&w=majority";
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.joxic.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`;
 mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true }).then(res => {
 }).catch(err => {
     console.log(err);
@@ -82,5 +82,5 @@ app.get('/my-credentials', (req, res) => {
 })
 
 app.listen(port, () => {
-    console.log(`Example app listening at http://localhost:${port}`)
+    console.log(`Example app listening at ${os.hostname() + ":" + port}`)
 })
