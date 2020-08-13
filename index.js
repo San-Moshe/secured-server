@@ -63,7 +63,14 @@ app.post('/login', (req, res) => {
 
         bcrypt.compare(password, user.password).then((isMatch) => {
             if (isMatch) {
-                res.json(tokenUtils.createToken(username))
+                let refreshToken = tokenUtils.createRefreshToken(username);
+                let token = tokenUtils.createToken(username);
+                res.status(200).json({
+                    success: true,
+                    message: 'Authentication successful!',
+                    token: token,
+                    refreshToken: refreshToken
+                })
             } else {
                 res.status(401).json({
                     success: false,
